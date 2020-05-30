@@ -11,6 +11,7 @@ public class ImageTraversal {
     private BufferedImage smallerImage;
     private int[][] smallerImageRGBs;
     private int[][] largerImageRGBs;
+    private ArrayList subImages;
 
     public ImageTraversal(BufferedImage image1, BufferedImage image2){
         if(image1.getHeight() * image1.getWidth() <= image2.getHeight() * image2.getWidth()){
@@ -25,6 +26,7 @@ public class ImageTraversal {
         setSmallerImageRGBs();
         largerImageRGBs = new int[largerImage.getHeight()][largerImage.getWidth()];
         setLargerImageRGBs();
+        addSubImages();
     }
 
     private void setSmallerImageRGBs(){
@@ -60,15 +62,18 @@ public class ImageTraversal {
         }
     }
 
-    private ArrayList<BufferedImage> getSubImages() throws RasterFormatException {
-        ArrayList subImages = new ArrayList();
+    private void addSubImages() throws RasterFormatException {
+        subImages = new ArrayList();
         int width = smallerImage.getWidth();
         int height = smallerImage.getHeight();
-        for(int i = 0; i < largerImage.getWidth() - width; i++){
-            for(int j = 0; j < largerImage.getHeight() - height; j++){
+        for(int i = 0; i < largerImage.getWidth() - width; i++) {
+            for (int j = 0; j < largerImage.getHeight() - height; j++) {
                 subImages.add(largerImage.getSubimage(i, j, width, height));
             }
         }
+    }
+
+    public ArrayList<BufferedImage> getSubImages(){
         return subImages;
     }
 
@@ -76,7 +81,7 @@ public class ImageTraversal {
         BufferedImage tree = ImageIO.read(new File("src\\Images\\tree.png"));
         BufferedImage village = ImageIO.read(new File("src\\Images\\village.png"));
         ImageTraversal test1 = new ImageTraversal(tree, village);
-        test1.print2DArray(test1.getSmallerRGBs());
+        System.out.println(test1.getSubImages().size());
     }
 
 
