@@ -41,47 +41,31 @@ public class ImageTraversal implements Runnable{
         resultY = new ArrayList();
     }
 
-    public int[][] getSmallerRGBs(){
-        return smallerImageRGBs;
-    }
-
-    public int[][] getLargerRGBs(){
-        return largerImageRGBs;
-    }
-
-    public ArrayList<BufferedImage> getSubImages(){
-        return subImages;
-    }
-
-    private int[][] setImageRGBs(BufferedImage bI){
+    private int[][] setImageRGBs(BufferedImage bI) {
         int[][] bIRGBs = new int[bI.getHeight()][bI.getWidth()];
-        for(int i = 0; i < bI.getHeight(); i++) {
-            for (int j = 0; j < bI.getWidth(); j++) {
+        for (int i = 0; i < bIRGBs.length; i++) {
+            for (int j = 0; j < bIRGBs[0].length; j++) {
                 bIRGBs[i][j] = bI.getRGB(j, i);
             }
         }
         return bIRGBs;
     }
 
-    public void print2DArray(int array[][]){
-        for(int[] i: array){
-            for(int j : i){
-                System.out.print(j + ",");
-            }
-            System.out.println("");
-        }
-    }
-
     private void setSubImages() {
-        int width = smallerImage.getWidth();
-        int height = smallerImage.getHeight();
-        for(int i = 0; i < largerImage.getWidth() - width; i++) {
-            for (int j = 0; j < largerImage.getHeight() - height; j++) {
-                subImages.add(largerImage.getSubimage(i, j, width, height));
+        int diffWidth = largerImage.getWidth() - smallerImage.getWidth();
+        int diffHeight = largerImage.getHeight() - smallerImage.getHeight();
+        if(diffWidth == 0){
+            diffWidth += 1;
+        }
+        if(diffHeight == 0){
+            diffHeight += 1;
+        }
+        for(int i = 0; i < diffWidth; i++) {
+            for (int j = 0; j < diffHeight; j++) {
+                subImages.add(largerImage.getSubimage(i, j, smallerImage.getWidth(), smallerImage.getHeight()));
                 subImagesX.add(i);
                 subImagesY.add(j);
             }
-
         }
     }
 
@@ -99,7 +83,7 @@ public class ImageTraversal implements Runnable{
 
     private void compareSmallToSub1(){
         for(int i = 0; i < (int)(subImages.size()*0.25); i++){
-            if(equalRGBsCount(subImages.get(i)) == smallArea) {
+            if(equalRGBsCount(subImages.get(i)) >= smallArea * 0.95) {
                 resultX.add(subImagesX.get(i));
                 resultY.add(subImagesX.get(i));
                 System.out.println("(" + subImagesX.get(i) + "," + subImagesY.get(i) + ")");
@@ -110,7 +94,7 @@ public class ImageTraversal implements Runnable{
 
     private void compareSmallToSub2(){
         for(int i = (int)(subImages.size()*0.25); i < (int)(subImages.size()*0.5); i++){
-            if(equalRGBsCount(subImages.get(i)) == smallArea) {
+            if(equalRGBsCount(subImages.get(i)) >= smallArea * 0.95) {
                 resultX.add(subImagesX.get(i));
                 resultY.add(subImagesX.get(i));
                 System.out.println("(" + subImagesX.get(i) + "," + subImagesY.get(i) + ")");
@@ -121,7 +105,7 @@ public class ImageTraversal implements Runnable{
 
     private void compareSmallToSub3(){
         for(int i = (int)(subImages.size()*0.5); i < (int)(subImages.size()*0.75); i++){
-            if(equalRGBsCount(subImages.get(i)) == smallArea) {
+            if(equalRGBsCount(subImages.get(i)) >= smallArea * 0.95) {
                 resultX.add(subImagesX.get(i));
                 resultY.add(subImagesX.get(i));
                 System.out.println("(" + subImagesX.get(i) + "," + subImagesY.get(i) + ")");
@@ -132,7 +116,7 @@ public class ImageTraversal implements Runnable{
 
     private void compareSmallToSub4(){
         for(int i = (int)(subImages.size()*0.75); i < subImages.size(); i++){
-            if(equalRGBsCount(subImages.get(i)) == smallArea) {
+            if(equalRGBsCount(subImages.get(i)) >= smallArea * 0.95) {
                 resultX.add(subImagesX.get(i));
                 resultY.add(subImagesX.get(i));
                 System.out.println("(" + subImagesX.get(i) + "," + subImagesY.get(i) + ")");
@@ -145,36 +129,16 @@ public class ImageTraversal implements Runnable{
     public void run() {
         String currentThreadName = Thread.currentThread().getName();
         if(currentThreadName == "one"){
-            try {
-                compareSmallToSub1();
-                thread1.wait(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            compareSmallToSub1();
         }
         else if(Thread.currentThread().getName() == "two"){
-            try {
-                compareSmallToSub2();
-                thread2.wait(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            compareSmallToSub2();
         }
         else if(currentThreadName == "three"){
-            try {
-                compareSmallToSub3();
-                thread2.wait(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            compareSmallToSub3();
         }
         else if(currentThreadName == "four"){
-            try {
-                compareSmallToSub4();
-                thread2.wait(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            compareSmallToSub4();
         }
     }
 
@@ -193,9 +157,9 @@ public class ImageTraversal implements Runnable{
     }
 
     public static void main(String[] args) throws IOException {
-        BufferedImage tree = ImageIO.read(new File("src\\Images\\tree.png"));
-        BufferedImage village = ImageIO.read(new File("src\\Images\\village.png"));
-        ImageTraversal test1 = new ImageTraversal(tree, village);
+        BufferedImage image1 = ImageIO.read(new File("src\\Images\\village.png"));
+        BufferedImage image2 = ImageIO.read(new File("src\\Images\\villageTest.png"));
+        ImageTraversal test1 = new ImageTraversal(image1, image2);
         test1.doTask();
     }
 
