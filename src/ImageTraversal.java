@@ -1,12 +1,12 @@
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.RasterFormatException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class ImageTraversal {
+public class ImageTraversal implements Runnable{
 
+    private Thread thread1, thread2, thread3, thread4;
     private BufferedImage largerImage;
     private BufferedImage smallerImage;
     private int[][] smallerImageRGBs;
@@ -16,6 +16,7 @@ public class ImageTraversal {
     private ArrayList<Integer> subImagesY;
     private ArrayList<Integer> resultX;
     private ArrayList<Integer> resultY;
+    private int smallArea;
 
     public ImageTraversal(BufferedImage image1, BufferedImage image2){
         if(image1.getHeight() * image1.getWidth() <= image2.getHeight() * image2.getWidth()){
@@ -26,24 +27,18 @@ public class ImageTraversal {
             smallerImage = image2;
             largerImage = image1;
         }
-        smallerImageRGBs = new int[smallerImage.getHeight()][smallerImage.getWidth()];
-        largerImageRGBs = new int[largerImage.getHeight()][largerImage.getWidth()];
-    }
 
-    private void setSmallerImageRGBs(){
-        for(int i = 0; i < smallerImage.getHeight(); i++) {
-            for (int j = 0; j < smallerImage.getWidth(); j++) {
-                smallerImageRGBs[i][j] = smallerImage.getRGB(j, i);
-            }
-        }
-    }
+        smallArea = smallerImage.getWidth() * smallerImage.getHeight();
 
-    private void setLargerImageRGBs(){
-        for(int i = 0; i < largerImage.getHeight(); i++){
-            for(int j = 0; j < largerImage.getWidth(); j++){
-                largerImageRGBs[i][j] = largerImage.getRGB(j, i);
-            }
-        }
+        smallerImageRGBs = setImageRGBs(smallerImage);
+        largerImageRGBs = setImageRGBs(largerImage);
+
+        subImages = new ArrayList();
+        subImagesX = new ArrayList();
+        subImagesY = new ArrayList();
+
+        resultX = new ArrayList();
+        resultY = new ArrayList();
     }
 
     public int[][] getSmallerRGBs(){
@@ -52,6 +47,20 @@ public class ImageTraversal {
 
     public int[][] getLargerRGBs(){
         return largerImageRGBs;
+    }
+
+    public ArrayList<BufferedImage> getSubImages(){
+        return subImages;
+    }
+
+    private int[][] setImageRGBs(BufferedImage bI){
+        int[][] bIRGBs = new int[bI.getHeight()][bI.getWidth()];
+        for(int i = 0; i < bI.getHeight(); i++) {
+            for (int j = 0; j < bI.getWidth(); j++) {
+                bIRGBs[i][j] = bI.getRGB(j, i);
+            }
+        }
+        return bIRGBs;
     }
 
     public void print2DArray(int array[][]){
@@ -63,10 +72,7 @@ public class ImageTraversal {
         }
     }
 
-    private void setSubImages() throws RasterFormatException {
-        subImages = new ArrayList();
-        subImagesX = new ArrayList();
-        subImagesY = new ArrayList();
+    private void setSubImages() {
         int width = smallerImage.getWidth();
         int height = smallerImage.getHeight();
         for(int i = 0; i < largerImage.getWidth() - width; i++) {
@@ -75,38 +81,15 @@ public class ImageTraversal {
                 subImagesX.add(i);
                 subImagesY.add(j);
             }
+
         }
     }
 
-    public ArrayList<BufferedImage> getSubImages(){
-        return subImages;
-    }
-
-    private int[][] getImageRGBs(BufferedImage bI){
-        int[][] bIRGBs = new int[bI.getHeight()][bI.getWidth()];
-        for(int i = 0; i < bI.getHeight(); i++) {
-            for (int j = 0; j < bI.getWidth(); j++) {
-                bIRGBs[i][j] = bI.getRGB(j, i);
-            }
-        }
-        return bIRGBs;
-    }
-
-    private boolean[][] compareRGBs(BufferedImage bI){
-        boolean[][] comparisons = new boolean[smallerImage.getHeight()][smallerImage.getWidth()];
+    private int equalRGBsCount(BufferedImage bI){
+        int output = 0;
         for(int i = 0; i < smallerImageRGBs.length; i++){
             for(int j = 0; j < smallerImageRGBs[0].length; j++){
-                comparisons[i][j] = smallerImageRGBs[i][j] == getImageRGBs(bI)[i][j];
-            }
-        }
-        return comparisons;
-    }
-
-    private int numberOfTrue(boolean[][] RGBComparisons){
-        int output = 0;
-        for(boolean[] i: RGBComparisons){
-            for(boolean j : i){
-                if(j){
+                if(smallerImageRGBs[i][j] == setImageRGBs(bI)[i][j]){
                     output++;
                 }
             }
@@ -114,26 +97,99 @@ public class ImageTraversal {
         return output;
     }
 
-    private void compareSmallToSub(){
-        resultX = new ArrayList();
-        resultY = new ArrayList();
-        for(int i = 0; i < subImages.size(); i++){
-            boolean[][] currSubImageComparison = compareRGBs(subImages.get(i));
-            if(numberOfTrue(currSubImageComparison) == subImages.get(i).getWidth() + subImages.get(i).getHeight() - 100) {
+    private void compareSmallToSub1(){
+        for(int i = 0; i < (int)(subImages.size()*0.25); i++){
+            if(equalRGBsCount(subImages.get(i)) == smallArea) {
                 resultX.add(subImagesX.get(i));
                 resultY.add(subImagesX.get(i));
                 System.out.println("(" + subImagesX.get(i) + "," + subImagesY.get(i) + ")");
+            }
+            System.out.println("SubImage# " + i);
+        }
+    }
+
+    private void compareSmallToSub2(){
+        for(int i = (int)(subImages.size()*0.25); i < (int)(subImages.size()*0.5); i++){
+            if(equalRGBsCount(subImages.get(i)) == smallArea) {
+                resultX.add(subImagesX.get(i));
+                resultY.add(subImagesX.get(i));
+                System.out.println("(" + subImagesX.get(i) + "," + subImagesY.get(i) + ")");
+            }
+            System.out.println("SubImage# " + i);
+        }
+    }
+
+    private void compareSmallToSub3(){
+        for(int i = (int)(subImages.size()*0.5); i < (int)(subImages.size()*0.75); i++){
+            if(equalRGBsCount(subImages.get(i)) == smallArea) {
+                resultX.add(subImagesX.get(i));
+                resultY.add(subImagesX.get(i));
+                System.out.println("(" + subImagesX.get(i) + "," + subImagesY.get(i) + ")");
+            }
+            System.out.println("SubImage# " + i);
+        }
+    }
+
+    private void compareSmallToSub4(){
+        for(int i = (int)(subImages.size()*0.75); i < subImages.size(); i++){
+            if(equalRGBsCount(subImages.get(i)) == smallArea) {
+                resultX.add(subImagesX.get(i));
+                resultY.add(subImagesX.get(i));
+                System.out.println("(" + subImagesX.get(i) + "," + subImagesY.get(i) + ")");
+            }
+            System.out.println("SubImage# " + i);
+        }
+    }
+
+    @Override
+    public void run() {
+        String currentThreadName = Thread.currentThread().getName();
+        if(currentThreadName == "one"){
+            try {
+                compareSmallToSub1();
+                thread1.wait(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        else if(Thread.currentThread().getName() == "two"){
+            try {
+                compareSmallToSub2();
+                thread2.wait(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        else if(currentThreadName == "three"){
+            try {
+                compareSmallToSub3();
+                thread2.wait(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        else if(currentThreadName == "four"){
+            try {
+                compareSmallToSub4();
+                thread2.wait(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
 
     public void doTask(){
-        setSmallerImageRGBs();
-        setLargerImageRGBs();
+        thread1 = new Thread(this, "one");
+        thread2 = new Thread(this, "two");
+        thread3 = new Thread(this, "three");
+        thread4 = new Thread(this, "four");
         setSubImages();
-        System.out.println("Starting Comparisons");
-        compareSmallToSub();
-        System.out.println(resultX.size());
+        System.out.println(subImages.size());
+        thread1.start();
+        thread2.start();
+        thread3.start();
+        thread4.start();
+
     }
 
     public static void main(String[] args) throws IOException {
