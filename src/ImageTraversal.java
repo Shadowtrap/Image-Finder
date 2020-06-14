@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class ImageTraversal implements Runnable{
 
-    private Thread thread1, thread2, thread3, thread4, thread5, instance;
+    private Thread thread1, thread2, thread3, thread4, thread5;
     private BufferedImage largerImage;
     private BufferedImage smallerImage;
     private int[][] smallerImageRGBs;
@@ -50,7 +50,7 @@ public class ImageTraversal implements Runnable{
     //Try to get it to only analyse the middle 80-90 percent of the image
     private int[][] setImageRGBs(BufferedImage bI) {
         int[][] bIRGBs = new int[bI.getHeight()][bI.getWidth()];
-        for (int i = bIRGBs.length; i < bIRGBs.length; i++) {
+        for (int i = 0; i < bIRGBs.length; i++) {
             for (int j = 0; j < bIRGBs[0].length; j++) {
                 bIRGBs[i][j] = bI.getRGB(j, i);
             }
