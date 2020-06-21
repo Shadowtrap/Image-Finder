@@ -31,20 +31,22 @@ public class ImageTraversal implements Runnable{
 
         smallArea = smallerImage.getWidth() * smallerImage.getHeight();
         
-        percentOfImage = Math.sqrt(0.9);
+
+        percentOfImage = Math.sqrt(0.90);
 
         smallerImageRGBs = setImageRGBs(smallerImage);
 
-        subImages = new ArrayList();
-        subImagesX = new ArrayList();
-        subImagesY = new ArrayList();
+        subImages = new ArrayList<BufferedImage>();
+        subImagesX = new ArrayList<Integer>();
+        subImagesY = new ArrayList<Integer>();
 
-        resultX = new ArrayList();
-        resultY = new ArrayList();
+        resultX = new ArrayList<Integer>();
+        resultY = new ArrayList<Integer>();
 
         compareTolerance = 0.95;
     }
 
+    //Method is not working completely
     private int[][] setImageRGBs(BufferedImage bI) {
         int partHeight = (int)(bI.getHeight() * percentOfImage);
         int partWidth = (int)(bI.getWidth() * percentOfImage);
@@ -95,9 +97,10 @@ public class ImageTraversal implements Runnable{
         };
         inst.start();
         while(inst.getState() == Thread.State.RUNNABLE){
-            try {
-                Thread.currentThread().sleep(10);
-            } catch (InterruptedException e) {
+            try{
+                Thread.sleep(10);
+            }
+            catch(Exception e){
                 e.printStackTrace();
             }
         }
@@ -111,7 +114,7 @@ public class ImageTraversal implements Runnable{
                 resultY.add(subImagesX.get(i));
                 System.out.println("(" + subImagesX.get(i) + "," + subImagesY.get(i) + ")");
             }
-            System.out.println("SubImage# " + i);
+            System.out.println("SubImage " + i);
         }
     }
 
@@ -187,18 +190,29 @@ public class ImageTraversal implements Runnable{
         thread4 = new Thread(this, "four");
         thread5 = new Thread(this, "five");
         setSubImages();
-        System.out.println(subImages.size());
+        System.out.println(subImages.size() + "----" + Thread.activeCount());
         thread1.start();
         thread2.start();
         thread3.start();
         thread4.start();
         thread5.start();
-
+        while(Thread.activeCount() > 1){
+            try{
+                Thread.sleep(10);
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+        System.out.println("===================Results====================");
+        for(int i = 0; i < resultX.size(); i++){
+            System.out.println("(" + resultX.get(i) + ", " + resultY.get(i) + ")");
+        }
     }
 
     public static void main(String[] args) throws IOException {
-        BufferedImage image1 = ImageIO.read(new File("src\\Images\\villagePart.png"));
-        BufferedImage image2 = ImageIO.read(new File("src\\Images\\village.png"));
+        BufferedImage image1 = ImageIO.read(new File("src\\Images\\treePart.png"));
+        BufferedImage image2 = ImageIO.read(new File("src\\Images\\tree.png"));
         ImageTraversal test1 = new ImageTraversal(image1, image2);
         test1.doTask();
     }
